@@ -607,38 +607,42 @@
             <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
               <h4 class="fw-bold text-dark mb-3"><i class="bi bi-chat-dots me-2 text-info"></i>Send a Message</h4>
               
-              <form id="portfolio-contact-form">
+              <form id="portfolio-contact-form" novalidate>
                 <div class="row gy-3">
 
                   <div class="col-md-6">
-                    <label for="contact-name" class="form-label text-secondary fw-semibold small">Your Name</label>
+                    <label for="contact-name" class="form-label text-secondary fw-semibold small">Your Name <span class="text-danger">*</span></label>
                     <input type="text" name="name" class="form-control rounded-3" id="contact-name" placeholder="Enter your name" required>
+                    <div class="invalid-feedback">Please provide your name.</div>
                   </div>
 
                   <div class="col-md-6">
-                    <label for="contact-email" class="form-label text-secondary fw-semibold small">Your Email</label>
-                    <input type="email" class="form-control rounded-3" name="email" id="contact-email" placeholder="name@example.com" required>
+                    <label for="contact-email" class="form-label text-secondary fw-semibold small">Your Email <span class="text-danger">*</span></label>
+                    <input type="email" name="email" class="form-control rounded-3" id="contact-email" placeholder="name@example.com" required>
+                    <div class="invalid-feedback">Please provide a valid email address.</div>
                   </div>
 
                   <div class="col-md-12">
-                    <label for="contact-subject" class="form-label text-secondary fw-semibold small">Subject</label>
-                    <input type="text" class="form-control rounded-3" name="subject" id="contact-subject" placeholder="Opportunity / Project Inquiry" required>
+                    <label for="contact-title" class="form-label text-secondary fw-semibold small">Subject <span class="text-danger">*</span></label>
+                    <input type="text" name="title" class="form-control rounded-3" id="contact-title" placeholder="Opportunity / Project Inquiry" required>
+                    <div class="invalid-feedback">Please enter a subject.</div>
                   </div>
 
                   <div class="col-md-12">
-                    <label for="contact-message" class="form-label text-secondary fw-semibold small">Message</label>
+                    <label for="contact-message" class="form-label text-secondary fw-semibold small">Message <span class="text-danger">*</span></label>
                     <textarea class="form-control rounded-3" name="message" rows="6" id="contact-message" placeholder="Hi Preethi, I came across your portfolio..." required></textarea>
+                    <div class="invalid-feedback">Please enter your message.</div>
                   </div>
 
                   <div class="col-md-12 text-center mt-3">
-                    <button type="submit" class="btn hero-btn-primary px-4 py-2 w-100 w-md-auto">
+                    <button type="submit" id="contact-submit-btn" class="btn hero-btn-primary px-4 py-2 w-100 w-md-auto">
                       <i class="bi bi-send me-2"></i>Send Message
                     </button>
                   </div>
 
                 </div>
 
-                <!-- Honest Feedback Alert Box (no fake success message) -->
+                <!-- Status Feedback Box -->
                 <div id="contact-status-box" class="mt-3" style="display: none;"></div>
               </form>
 
@@ -681,60 +685,148 @@
   <script src="assets/vendor/isotope-layout/isotope.pkgd.min.js"></script>
   <script src="assets/vendor/swiper/swiper-bundle.min.js"></script>
 
+  <!-- EmailJS Official Browser SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script>
+    if (typeof emailjs === 'undefined') {
+      document.write('<script src="assets/vendor/emailjs/email.min.js"><\/script>');
+    }
+  </script>
+
   <!-- Main JS File -->
   <script src="assets/js/main.js"></script>
 
-  <!-- Contact Form & Snap Scroll Handler -->
+  <!-- EmailJS Contact Form Integration -->
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-
-      // Transparent Contact Form Submission
-      const contactForm = document.getElementById('portfolio-contact-form');
-      if (contactForm) {
-        contactForm.addEventListener('submit', function(e) {
-          e.preventDefault();
-          const nameInput = document.getElementById('contact-name');
-          const emailInput = document.getElementById('contact-email');
-          const subjectInput = document.getElementById('contact-subject');
-          const messageInput = document.getElementById('contact-message');
-          const statusBox = document.getElementById('contact-status-box');
-
-          const name = nameInput.value.trim();
-          const email = emailInput.value.trim();
-          const subject = subjectInput.value.trim();
-          const message = messageInput.value.trim();
-
-          if (!name || !email || !subject || !message) {
-            statusBox.className = 'alert alert-warning mt-3';
-            statusBox.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i>Please fill in all required fields.';
-            statusBox.style.display = 'block';
-            return;
-          }
-
-          const mailtoUrl = 'mailto:preethiyadav805@gmail.com?subject=' + 
-            encodeURIComponent('[Portfolio Inquiry] ' + subject) + 
-            '&body=' + encodeURIComponent('From: ' + name + ' (' + email + ')\n\nMessage:\n' + message);
-
-          // Clear, transparent indication that backend requires configuration, providing instant email client fallback
-          statusBox.className = 'alert alert-info mt-3 p-3 text-start border-0 shadow-sm';
-          statusBox.innerHTML = `
-            <div class="d-flex flex-column gap-2">
-              <div class="fw-bold text-dark"><i class="bi bi-info-circle-fill text-info me-2"></i>Direct Web Submission Requires Backend Service</div>
-              <p class="mb-1 text-secondary small">
-                This portfolio website is currently running statically. Direct form submission requires a connected backend service (e.g., Formspree, EmailJS, or server endpoint).
-              </p>
-              <div class="mt-1">
-                <a href="${mailtoUrl}" class="btn btn-sm btn-primary me-2" style="background-color: #0ea5e9; border: none;">
-                  <i class="bi bi-send-fill me-1"></i>Open Email Client to Send Directly
-                </a>
-                <a href="mailto:preethiyadav805@gmail.com" class="btn btn-sm btn-outline-secondary">
-                  Copy: preethiyadav805@gmail.com
-                </a>
-              </div>
-            </div>
-          `;
-          statusBox.style.display = 'block';
+    // 4. Initialize EmailJS with configured Public Key (7Uz_yVpT35iHBPHvi)
+    (function() {
+      if (typeof emailjs !== 'undefined') {
+        emailjs.init({
+          publicKey: '7Uz_yVpT35iHBPHvi'
         });
+      }
+    })();
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // Failsafe init
+      if (typeof emailjs !== 'undefined') {
+        try {
+          emailjs.init({ publicKey: '7Uz_yVpT35iHBPHvi' });
+        } catch (err) {
+          console.warn('EmailJS initialization notice:', err);
+        }
+      }
+
+      const contactForm = document.getElementById('portfolio-contact-form');
+      if (!contactForm) return;
+
+      let isSubmitting = false;
+
+      contactForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        // 11. Prevent multiple submissions while sending
+        if (isSubmitting) return;
+
+        const nameInput = document.getElementById('contact-name');
+        const emailInput = document.getElementById('contact-email');
+        const titleInput = document.getElementById('contact-title');
+        const messageInput = document.getElementById('contact-message');
+        const submitBtn = document.getElementById('contact-submit-btn');
+        const statusBox = document.getElementById('contact-status-box');
+
+        const name = nameInput.value.trim();
+        const email = emailInput.value.trim();
+        const title = titleInput.value.trim();
+        const message = messageInput.value.trim();
+
+        // Reset validation styles
+        [nameInput, emailInput, titleInput, messageInput].forEach(function(input) {
+          input.classList.remove('is-invalid');
+        });
+
+        // 6. Form validation (non-empty & valid email)
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        let hasError = false;
+
+        if (!name) {
+          nameInput.classList.add('is-invalid');
+          hasError = true;
+        }
+        if (!email || !emailRegex.test(email)) {
+          emailInput.classList.add('is-invalid');
+          hasError = true;
+        }
+        if (!title) {
+          titleInput.classList.add('is-invalid');
+          hasError = true;
+        }
+        if (!message) {
+          messageInput.classList.add('is-invalid');
+          hasError = true;
+        }
+
+        if (hasError) {
+          statusBox.className = 'alert alert-warning mt-3 p-3 rounded-3 shadow-sm border-0 d-flex align-items-center';
+          statusBox.innerHTML = '<i class="bi bi-exclamation-triangle-fill text-warning fs-4 me-3"></i><div><strong>Validation Notice:</strong> Please fill in all required fields with a valid email.</div>';
+          statusBox.style.display = 'block';
+          return;
+        }
+
+        // 7. Loading State & 11. Prevent multiple submissions
+        isSubmitting = true;
+        submitBtn.disabled = true;
+        const originalBtnHtml = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Sending Message...';
+
+        statusBox.className = 'alert alert-info mt-3 p-3 rounded-3 shadow-sm border-0 d-flex align-items-center';
+        statusBox.innerHTML = '<div class="spinner-border spinner-border-sm text-info me-3" role="status"></div><div>Connecting to email server and transmitting your message...</div>';
+        statusBox.style.display = 'block';
+
+        // 3. Map form fields: name, email, title (subject), message
+        const templateParams = {
+          name: name,
+          email: email,
+          title: title,
+          subject: title,
+          message: message
+        };
+
+        // 5. Send with service_seft52q & template_e2aqspg
+        emailjs.send('service_seft52q', 'template_e2aqspg', templateParams)
+          .then(function(response) {
+            console.log('EmailJS Success:', response.status, response.text);
+
+            // 8. Success message ONLY after EmailJS confirms successful submission
+            statusBox.className = 'alert alert-success mt-3 p-3 rounded-3 shadow-sm border-0 d-flex align-items-center';
+            statusBox.innerHTML = '<i class="bi bi-check-circle-fill text-success fs-4 me-3"></i><div><strong class="d-block mb-1">Message Sent Successfully!</strong><small class="text-secondary">Thank you, ' + escapeHtml(name) + '. Your message has been delivered to Preethi Boddu.</small></div>';
+            statusBox.style.display = 'block';
+
+            // 10. Clear the form after successful submission
+            contactForm.reset();
+            [nameInput, emailInput, titleInput, messageInput].forEach(function(input) {
+              input.classList.remove('is-invalid');
+            });
+          })
+          .catch(function(error) {
+            console.error('EmailJS Error:', error);
+            const errorMsg = (error && (error.text || error.message)) ? (error.text || error.message) : 'Network error while contacting email service.';
+
+            // 9. Display meaningful error message if sending fails
+            statusBox.className = 'alert alert-danger mt-3 p-3 rounded-3 shadow-sm border-0 d-flex align-items-center';
+            statusBox.innerHTML = '<i class="bi bi-exclamation-octagon-fill text-danger fs-4 me-3"></i><div><strong class="d-block mb-1">Failed to Send Message</strong><small class="d-block text-secondary mb-2">' + escapeHtml(errorMsg) + '</small><a href="mailto:preethiyadav805@gmail.com?subject=' + encodeURIComponent('[Inquiry] ' + title) + '&body=' + encodeURIComponent(message) + '" class="btn btn-sm btn-outline-danger"><i class="bi bi-envelope-fill me-1"></i>Send Directly via Email Client</a></div>';
+            statusBox.style.display = 'block';
+          })
+          .finally(function() {
+            // Restore button state
+            isSubmitting = false;
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnHtml;
+          });
+      });
+
+      function escapeHtml(str) {
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
       }
     });
   </script>
